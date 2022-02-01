@@ -9,6 +9,7 @@
 #include <controller_interface/multi_interface_controller.h>
 #include <dynamic_reconfigure/server.h>
 #include <geometry_msgs/PoseStamped.h>
+#include <std_msgs/Float64MultiArray.h>
 #include <hardware_interface/joint_command_interface.h>
 #include <hardware_interface/robot_hw.h>
 #include <ros/node_handle.h>
@@ -40,9 +41,15 @@ class CartesianPoseImpedanceController : public controller_interface::MultiInter
   std::unique_ptr<franka_hw::FrankaModelHandle> model_handle_;
   std::vector<hardware_interface::JointHandle> joint_handles_;
 
-  double filter_params_{0.005};
-  double nullspace_stiffness_{20.0};
-  double nullspace_stiffness_target_{20.0};
+  // double filter_params_{0.005};
+  double filter_params_{0.002};
+  // double nullspace_stiffness_{20.0};
+  // double nullspace_stiffness_target_{20.0};
+  Eigen::Matrix<double, 7, 7> nullspace_stiffness_;
+  Eigen::Matrix<double, 7, 7> nullspace_stiffness_target_;
+  Eigen::Matrix<double, 7, 7> nullspace_damping_;
+  Eigen::Matrix<double, 7, 7> nullspace_damping_target_;
+
   const double delta_tau_max_{1.0};
   Eigen::Matrix<double, 6, 6> cartesian_stiffness_;
   Eigen::Matrix<double, 6, 6> cartesian_stiffness_target_;
@@ -74,6 +81,10 @@ class CartesianPoseImpedanceController : public controller_interface::MultiInter
   ros::NodeHandle dynamic_reconfigure_compliance_param_node_;
   void complianceParamCallback(franka_interactive_controllers::compliance_paramConfig& config,
                                uint32_t level);
+
+  // Dynamic reconfigure from ROS message
+  ros::Subscriber sub_desired_cartesian_stiffness_;
+  void desiredCartesianStiffnessCallback(const std_msgs::Float64MultiArray& msg);
 
   // Desireds pose subscriber
   ros::Subscriber sub_desired_pose_;

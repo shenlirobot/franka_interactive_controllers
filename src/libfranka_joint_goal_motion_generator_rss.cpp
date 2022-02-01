@@ -74,8 +74,25 @@ int main(int argc, char** argv) {
         std::cout << "Selected q_init_scoop as goal" << std::endl;
           q_goal = {{-1.6262530183565473, 0.36835540500440095, 0.7996468301612609, -1.7092709166376214, 0.9194892226190297, 0.8895511734750535, 0.31249669338448877}};
           break;
+       case 4  :
+        std::cout << "Selected q_init_scoop (on the right of table) as goal" << std::endl;
+          q_goal = {{0.12735585180709236, 0.5619404064646938, 0.6805618834882704, -1.6823562078977885, -1.3440559658978612, 0.7525859880270781, 1.5819390151704902}};
+          break;
+       case 5  :
+        std::cout << "Selected q_init_scoop (on the right of table) as goal" << std::endl;
+          q_goal = {{-0.3798102209191597, 0.3738950568236193, 0.7679064830235985, -1.6956826430138754, -1.7372545425227859, 1.1540701936678273, 1.2543177286354388}};
+          break;
+       case 6  :
+        std::cout << "Selected q_init_scoop (on the right of table) as goal" << std::endl;
+          q_goal = {{0.0444735907446016, 0.021154987762181367, 0.5044643525575336, -1.9534015166522465, -1.362052292667275, 1.0348031652238634, -0.2960306876649459}};
+          break;
+       // high starting location
+       case 7  :
+        std::cout << "Selected q_init_scoop (on the right of table) as goal" << std::endl;
+          q_goal = {{0.03587195687283549, -0.13952198328888207, 0.3845826635528029, -1.6133267634010875, -1.4906481852001614, 1.111173628756654, -0.8996329480161268}};
+          break;
     }
-  
+
     MotionGenerator motion_generator(0.6, q_goal);
     std::cout << "WARNING: This example will move the robot! "
               << "Please make sure to have the user stop button at hand!" << std::endl

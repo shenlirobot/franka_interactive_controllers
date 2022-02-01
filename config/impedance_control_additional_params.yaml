@@ -18,7 +18,13 @@ external_tool_compensation: [0.66381655, 0.0753069032, -1.72973592, 0, 0, 0]
 # cartesian_stiffness_target: [600, 600, 600, 50, 50, 50] 
 # RSS: teach, can only move along y,z or rotate around y:
 # cartesian_stiffness_target: [1000, 0, 0, 50, 0, 50]
+
 # RSS: replay:
-cartesian_stiffness_target: [600, 600, 600, 50, 50, 50]
-# cartesian_stiffness_target: [1000, 200, 200, 50, 50, 50]
-nullspace_stiffness: 0.00000001
+# cartesian_stiffness_target: [300, 300, 300, 50, 50, 50]
+cartesian_stiffness_target: [300, 300, 500, 50, 70, 50]
+# cartesian_stiffness_target: [600, 600, 600, 50, 50, 50]
+
+# RSS: teach:
+# nullspace_stiffness_target: [10, 5, 0.1, 0.1, 0.1, 0.000001, 0.1]
+# RSS: execute
+nullspace_stiffness_target: [0.1, 0.1, 0.1, 0.1, 0.1, 0.1, 0.1]
