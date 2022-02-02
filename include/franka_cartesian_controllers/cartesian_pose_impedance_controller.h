@@ -86,6 +86,9 @@ class CartesianPoseImpedanceController : public controller_interface::MultiInter
   ros::Subscriber sub_desired_cartesian_stiffness_;
   void desiredCartesianStiffnessCallback(const std_msgs::Float64MultiArray& msg);
 
+  ros::Subscriber sub_desired_nullspace_stiffness_;
+  void desiredNullspaceStiffnessCallback(const std_msgs::Float64MultiArray& msg);
+
   // Desireds pose subscriber
   ros::Subscriber sub_desired_pose_;
   void desiredPoseCallback(const geometry_msgs::PoseStampedConstPtr& msg);

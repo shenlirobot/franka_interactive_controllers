@@ -32,6 +32,11 @@ bool CartesianPoseImpedanceController::init(hardware_interface::RobotHW* robot_h
       20, &CartesianPoseImpedanceController::desiredCartesianStiffnessCallback, this,
       ros::TransportHints().reliable().tcpNoDelay());
 
+  sub_desired_nullspace_stiffness_ = node_handle.subscribe(
+      "/cartesian_impedance_controller/desired_nullspace_stiffness",
+      20, &CartesianPoseImpedanceController::desiredNullspaceStiffnessCallback, this,
+      ros::TransportHints().reliable().tcpNoDelay());
+
   // Getting ROSParams
   std::string arm_id;
   if (!node_handle.getParam("arm_id", arm_id)) {
@@ -441,7 +446,7 @@ void CartesianPoseImpedanceController::desiredCartesianStiffnessCallback(
     const std_msgs::Float64MultiArray& msg) {
   // https://gist.github.com/alexsleat/1372845
   if (msg.data.size() != 6) {
-    ROS_ERROR("CartesianPoseImpedanceController: Invalid compliance ROS message provided");
+    ROS_ERROR("CartesianPoseImpedanceController: Invalid ROS message for desiredCartesianStiffnessCallback provided");
     throw std::invalid_argument("Aborting controller!");
   }
 
@@ -456,6 +461,26 @@ void CartesianPoseImpedanceController::desiredCartesianStiffnessCallback(
   }
   ROS_WARN_STREAM("[desiredCartesianStiffnessCallback]: cartesian_stiffness_target_: " << std::endl <<  cartesian_stiffness_target_);
   ROS_WARN_STREAM("[desiredCartesianStiffnessCallback]: cartesian_damping_target_: " << std::endl <<  cartesian_damping_target_);
+}
+
+void CartesianPoseImpedanceController::desiredNullspaceStiffnessCallback(
+    const std_msgs::Float64MultiArray& msg) {
+  if (msg.data.size() != 7) {
+    ROS_ERROR("CartesianPoseImpedanceController: Invalid ROS message for desiredNullspaceStiffnessCallback provided");
+    throw std::invalid_argument("Aborting controller!");
+  }
+
+  nullspace_stiffness_target_.setIdentity();
+  nullspace_damping_target_.setIdentity();
+  for (int i = 0; i < 7; i ++) {
+    nullspace_stiffness_target_(i,i) = msg.data[i];
+  }
+  // Damping ratio = 1
+  for (int i = 0; i < 7; i ++) {
+    nullspace_damping_target_(i,i) = 2.0 * sqrt(msg.data[i]);
+  }
+  ROS_WARN_STREAM("[desiredNullspaceStiffnessCallback]: nullspace_stiffness_target_: " << std::endl <<  nullspace_stiffness_target_);
+  ROS_WARN_STREAM("[desiredNullspaceStiffnessCallback]: nullspace_damping_target_: " << std::endl <<  nullspace_damping_target_);
 }
 
 void CartesianPoseImpedanceController::desiredPoseCallback(
