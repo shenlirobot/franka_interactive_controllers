@@ -9,6 +9,7 @@
 #include <controller_interface/multi_interface_controller.h>
 #include <dynamic_reconfigure/server.h>
 #include <geometry_msgs/PoseStamped.h>
+#include <std_msgs/Float64MultiArray.h>
 #include <geometry_msgs/Twist.h>
 #include <hardware_interface/joint_command_interface.h>
 #include <hardware_interface/robot_hw.h>
@@ -43,8 +44,13 @@ class CartesianTwistImpedanceController : public controller_interface::MultiInte
 
   double dt_ = 0.001;
   double filter_params_{0.005};
-  double nullspace_stiffness_{20.0};
-  double nullspace_stiffness_target_{20.0};
+  // double nullspace_stiffness_{20.0};
+  // double nullspace_stiffness_target_{20.0};
+  Eigen::Matrix<double, 7, 7> nullspace_stiffness_; 
+  Eigen::Matrix<double, 7, 7> nullspace_stiffness_target_;  
+  Eigen::Matrix<double, 7, 7> nullspace_damping_; 
+  Eigen::Matrix<double, 7, 7> nullspace_damping_target_;  
+
   const double delta_tau_max_{1.0};
   Eigen::Matrix<double, 6, 6> cartesian_stiffness_;
   Eigen::Matrix<double, 6, 6> cartesian_stiffness_target_;
@@ -69,6 +75,7 @@ class CartesianTwistImpedanceController : public controller_interface::MultiInte
   Eigen::Matrix<double, 7, 7> d_joint_gains_;
   Eigen::Matrix<double, 7, 7> d_ff_joint_gains_;
   Eigen::Matrix<double, 6, 1> tool_compensation_force_;
+  Eigen::Matrix<double, 6, 1> tool_compensation_force_target_;
   bool activate_tool_compensation_;
   
   // Dynamic reconfigure
@@ -77,6 +84,14 @@ class CartesianTwistImpedanceController : public controller_interface::MultiInte
   ros::NodeHandle dynamic_reconfigure_compliance_param_node_;
   void complianceParamCallback(franka_interactive_controllers::compliance_paramConfig& config,
                                uint32_t level);
+  
+  // Dynamic reconfigure from ROS message 
+  ros::Subscriber sub_desired_cartesian_stiffness_;
+  void desiredCartesianStiffnessCallback(const std_msgs::Float64MultiArray& msg);
+  ros::Subscriber sub_desired_nullspace_stiffness_;
+  void desiredNullspaceStiffnessCallback(const std_msgs::Float64MultiArray& msg);
+  ros::Subscriber sub_desired_external_tool_compensation_; 
+  void desiredExternalToolCompensationCallback(const std_msgs::Float64MultiArray& msg); 
 
   // Desired twist subscriber
   ros::Subscriber sub_desired_twist_;

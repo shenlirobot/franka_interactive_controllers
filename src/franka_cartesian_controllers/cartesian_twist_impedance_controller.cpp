@@ -23,12 +23,23 @@ bool CartesianTwistImpedanceController::init(hardware_interface::RobotHW* robot_
   std::vector<double> cartesian_stiffness_vector;
   std::vector<double> cartesian_damping_vector;
 
-  // sub_desired_pose_ = node_handle.subscribe(
-  //     "/cartesian_impedance_controller/desired_pose", 20, &CartesianTwistImpedanceController::desiredPoseCallback, this,
-  //     ros::TransportHints().reliable().tcpNoDelay());
-
   sub_desired_twist_ = node_handle.subscribe(
       "/cartesian_impedance_controller/desired_twist", 20, &CartesianTwistImpedanceController::desiredTwistCallback, this,
+      ros::TransportHints().reliable().tcpNoDelay());
+
+  sub_desired_cartesian_stiffness_ = node_handle.subscribe(
+      "/cartesian_impedance_controller/desired_cartesian_stiffness",
+      20, &CartesianTwistImpedanceController::desiredCartesianStiffnessCallback, this,
+      ros::TransportHints().reliable().tcpNoDelay());
+  
+  sub_desired_nullspace_stiffness_ = node_handle.subscribe(
+      "/cartesian_impedance_controller/desired_nullspace_stiffness",
+      20, &CartesianTwistImpedanceController::desiredNullspaceStiffnessCallback, this,
+      ros::TransportHints().reliable().tcpNoDelay());
+
+  sub_desired_external_tool_compensation_ = node_handle.subscribe(
+      "/cartesian_impedance_controller/desired_external_tool_compensation",
+      20, &CartesianTwistImpedanceController::desiredExternalToolCompensationCallback, this,
       ros::TransportHints().reliable().tcpNoDelay());
 
   // Getting ROSParams
@@ -67,7 +78,7 @@ bool CartesianTwistImpedanceController::init(hardware_interface::RobotHW* robot_
     q_d_nullspace_initialized_ = true;
     if (q_nullspace.size() != 7) {
       ROS_ERROR(
-        "CartesianPoseImpedanceController: Invalid or no q_nullspace parameters provided, "
+        "CartesianTwistImpedanceController: Invalid or no q_nullspace parameters provided, "
         "aborting controller init!");
       return false;
     }
@@ -76,16 +87,43 @@ bool CartesianTwistImpedanceController::init(hardware_interface::RobotHW* robot_
     ROS_INFO_STREAM("Desired nullspace position (from YAML): " << std::endl << q_d_nullspace_);
   }
 
-
-  if (!node_handle.getParam("nullspace_stiffness", nullspace_stiffness_target_) || nullspace_stiffness_target_ <= 0) {
+  nullspace_stiffness_target_.setIdentity();
+  nullspace_damping_target_.setIdentity();
+  std::vector<double> nullspace_stiffness_target_yaml;
+  if (!node_handle.getParam("nullspace_stiffness_target", nullspace_stiffness_target_yaml) || nullspace_stiffness_target_yaml.size() != 7) {
     ROS_ERROR(
-      "CartesianPoseImpedanceController: Invalid or no nullspace_stiffness parameters provided, "
+      "CartesianTwistImpedanceController: Invalid or no nullspace_stiffness_target_yaml parameters provided, "
       "aborting controller init!");
     return false;
   }
+  for (int i = 0; i < 7; i ++) {
+    nullspace_stiffness_target_(i,i) = nullspace_stiffness_target_yaml[i];
+  }
+  for (int i = 0; i < 7; i ++) {
+    nullspace_damping_target_(i,i) = 2.0 * sqrt(nullspace_stiffness_target_yaml[i]);
+  }
   ROS_INFO_STREAM("nullspace_stiffness_target_: " << std::endl <<  nullspace_stiffness_target_);
-
-
+  ROS_INFO_STREAM("nullspace_damping_target_: " << std::endl <<  nullspace_damping_target_);
+  
+  // Initialize stiffness
+  cartesian_stiffness_target_.setIdentity();
+  cartesian_damping_target_.setIdentity();
+  std::vector<double> cartesian_stiffness_target_yaml;
+  if (!node_handle.getParam("cartesian_stiffness_target", cartesian_stiffness_target_yaml) || cartesian_stiffness_target_yaml.size() != 6) {
+    ROS_ERROR(
+      "CartesianTwistImpedanceController: Invalid or no cartesian_stiffness_target_yaml parameters provided, "
+      "aborting controller init!");
+    return false;
+  }
+  for (int i = 0; i < 6; i ++) {
+    cartesian_stiffness_target_(i,i) = cartesian_stiffness_target_yaml[i];
+  }
+  // Damping ratio = 1
+  for (int i = 0; i < 6; i ++) {
+    cartesian_damping_target_(i,i) = 2.0 * sqrt(cartesian_stiffness_target_yaml[i]);
+  }
+  ROS_INFO_STREAM("cartesian_stiffness_target_: " << std::endl <<  cartesian_stiffness_target_);
+  ROS_INFO_STREAM("cartesian_damping_target_: " << std::endl <<  cartesian_damping_target_);
 
   // Getting libranka control interfaces
   auto* model_interface = robot_hw->get<franka_hw::FrankaModelInterface>();
@@ -146,7 +184,6 @@ bool CartesianTwistImpedanceController::init(hardware_interface::RobotHW* robot_
       dynamic_reconfigure_compliance_param_node_);
   dynamic_server_compliance_param_->setCallback(
       boost::bind(&CartesianTwistImpedanceController::complianceParamCallback, this, _1, _2));
-
 
   // Initializing variables
   position_d_.setZero();
@@ -222,7 +259,6 @@ void CartesianTwistImpedanceController::starting(const ros::Time& /*time*/) {
     q_d_nullspace_initialized_ = true;
     ROS_INFO_STREAM("Desired nullspace position (from q_initial): " << std::endl << q_d_nullspace_);
   }
-
 }
 
 void CartesianTwistImpedanceController::update(const ros::Time& /*time*/,
@@ -252,10 +288,7 @@ void CartesianTwistImpedanceController::update(const ros::Time& /*time*/,
 
   //////////////////////////////////////////////////////////////////////////////////////////////////
   // This is the if statement that should be made into two different controllers
-  
   if (_goto_home){    
-    
-
     ROS_INFO_STREAM ("Moving robot to home joint configuration.");            
     
     // Variables to control robot in joint space 
@@ -302,9 +335,9 @@ void CartesianTwistImpedanceController::update(const ros::Time& /*time*/,
     Eigen::Matrix<double, 6, 1> error;
 
     // Simple integration of DS
-    ROS_INFO_STREAM("Current ee position: " << position);
-    ROS_INFO_STREAM("Desired velocity from DS: " << velocity_d_);
-    ROS_INFO_STREAM("Desired ee position from DS: " << position_d_);
+    // ROS_INFO_STREAM("Current ee position: " << position);
+    // ROS_INFO_STREAM("Desired velocity from DS: " << velocity_d_);
+    // ROS_INFO_STREAM("Desired ee position from DS: " << position_d_);
     error.head(3) << position - position_d_;
 
     // orientation error
@@ -320,7 +353,8 @@ void CartesianTwistImpedanceController::update(const ros::Time& /*time*/,
     // Cartesian PD control with damping ratio = 1
     tau_task << jacobian.transpose() *(-cartesian_stiffness_ * error - cartesian_damping_ * (jacobian * dq));
   
-    ROS_INFO_STREAM("Tau task: " << tau_task);
+    // ROS_INFO_STREAM("error: " << error);
+    // ROS_INFO_STREAM("Tau task: " << tau_task);
   }
   //////////////////////////////////////////////////////////////////////////////////////////////////
 
@@ -333,7 +367,7 @@ void CartesianTwistImpedanceController::update(const ros::Time& /*time*/,
   tau_nullspace << (Eigen::MatrixXd::Identity(7, 7) -
                     jacobian.transpose() * jacobian_transpose_pinv) *
                        (nullspace_stiffness_ * (q_d_nullspace_ - q) -
-                        (2.0 * sqrt(nullspace_stiffness_)) * dq);
+                        nullspace_damping_ * dq);
 
   // Compute tool compensation (scoop/camera in scooping task)
   if (activate_tool_compensation_)
@@ -353,16 +387,24 @@ void CartesianTwistImpedanceController::update(const ros::Time& /*time*/,
 
   // update parameters changed online either through dynamic reconfigure or through the interactive
   // target by filtering
-  cartesian_stiffness_ =
-      filter_params_ * cartesian_stiffness_target_ + (1.0 - filter_params_) * cartesian_stiffness_;
-  cartesian_damping_ =
-      filter_params_ * cartesian_damping_target_ + (1.0 - filter_params_) * cartesian_damping_;
-  nullspace_stiffness_ =
-      filter_params_ * nullspace_stiffness_target_ + (1.0 - filter_params_) * nullspace_stiffness_;
+  // cartesian_stiffness_ =
+  //     filter_params_ * cartesian_stiffness_target_ + (1.0 - filter_params_) * cartesian_stiffness_;
+  // cartesian_damping_ =
+  //     filter_params_ * cartesian_damping_target_ + (1.0 - filter_params_) * cartesian_damping_;
+  // nullspace_stiffness_ =
+  //     filter_params_ * nullspace_stiffness_target_ + (1.0 - filter_params_) * nullspace_stiffness_;
   
-  // position_d_ = filter_params_ * position_d_target_ + (1.0 - filter_params_) * position_d_;
+  // // position_d_ = filter_params_ * position_d_target_ + (1.0 - filter_params_) * position_d_;
+  // position_d_ = position_d_target_;
+  // orientation_d_ = orientation_d_.slerp(filter_params_, orientation_d_target_);
+
+  cartesian_stiffness_ = cartesian_stiffness_target_;
+  cartesian_damping_ = cartesian_damping_target_;
+  nullspace_stiffness_ = nullspace_stiffness_target_;
+  nullspace_damping_ = nullspace_damping_target_;
   position_d_ = position_d_target_;
-  orientation_d_ = orientation_d_.slerp(filter_params_, orientation_d_target_);
+  orientation_d_ = orientation_d_target_;
+  // ROS_INFO_STREAM("filtered cartesian_stiffness_: " << std::endl <<  cartesian_stiffness_);
 }
 
 Eigen::Matrix<double, 7, 1> CartesianTwistImpedanceController::saturateTorqueRate(
@@ -380,28 +422,84 @@ Eigen::Matrix<double, 7, 1> CartesianTwistImpedanceController::saturateTorqueRat
 void CartesianTwistImpedanceController::complianceParamCallback(
     franka_interactive_controllers::compliance_paramConfig& config,
     uint32_t /*level*/) {
-  cartesian_stiffness_target_.setIdentity();
-  cartesian_stiffness_target_.topLeftCorner(3, 3)
-      << config.translational_stiffness * Eigen::Matrix3d::Identity();
-  cartesian_stiffness_target_.bottomRightCorner(3, 3)
-      << config.rotational_stiffness * Eigen::Matrix3d::Identity();
-  cartesian_damping_target_.setIdentity();
+  // cartesian_stiffness_target_.setIdentity();
+  // cartesian_stiffness_target_.topLeftCorner(3, 3)
+  //     << config.translational_stiffness * Eigen::Matrix3d::Identity();
+  // cartesian_stiffness_target_.bottomRightCorner(3, 3)
+  //     << config.rotational_stiffness * Eigen::Matrix3d::Identity();
+  // cartesian_damping_target_.setIdentity();
   
   // Damping ratio = 1
-  cartesian_damping_target_.topLeftCorner(3, 3)
-      << 2.0 * sqrt(config.translational_stiffness) * Eigen::Matrix3d::Identity();
-  cartesian_damping_target_.bottomRightCorner(3, 3)
-      << 2.0 * sqrt(config.rotational_stiffness) * Eigen::Matrix3d::Identity();
-  nullspace_stiffness_target_ = config.nullspace_stiffness;
+  // cartesian_damping_target_.topLeftCorner(3, 3)
+  //     << 2.0 * sqrt(config.translational_stiffness) * Eigen::Matrix3d::Identity();
+  // cartesian_damping_target_.bottomRightCorner(3, 3)
+  //     << 2.0 * sqrt(config.rotational_stiffness) * Eigen::Matrix3d::Identity();
+  
+  // nullspace_stiffness_target_ = config.nullspace_stiffness;
 
   activate_tool_compensation_ = config.activate_tool_compensation;
+
+  // ROS_INFO_STREAM("cartesian_stiffness_target_: " << std::endl <<  cartesian_stiffness_target_);
+  // ROS_INFO_STREAM("cartesian_damping_target_: " << std::endl <<  cartesian_damping_target_);
+  // ROS_INFO_STREAM("nullspace_stiffness_target_: " << std::endl <<  nullspace_stiffness_target_);
 }
 
+void CartesianTwistImpedanceController::desiredCartesianStiffnessCallback(
+    const std_msgs::Float64MultiArray& msg) {
+  // https://gist.github.com/alexsleat/1372845
+  if (msg.data.size() != 6) {
+    ROS_ERROR("CartesianTwistImpedanceController: Invalid ROS message for desiredCartesianStiffnessCallback provided");
+    throw std::invalid_argument("Aborting controller!");
+  }
+  
+  cartesian_stiffness_target_.setIdentity();
+  cartesian_damping_target_.setIdentity();
+  for (int i = 0; i < 6; i ++) {
+    cartesian_stiffness_target_(i,i) = msg.data[i];
+  }
+  // Damping ratio = 1
+  for (int i = 0; i < 6; i ++) {
+    cartesian_damping_target_(i,i) = 2.0 * sqrt(msg.data[i]);
+  }
+  ROS_WARN_STREAM("[desiredCartesianStiffnessCallback]: cartesian_stiffness_target_: " << std::endl <<  cartesian_stiffness_target_);
+  ROS_WARN_STREAM("[desiredCartesianStiffnessCallback]: cartesian_damping_target_: " << std::endl <<  cartesian_damping_target_);
+}
+
+void CartesianTwistImpedanceController::desiredNullspaceStiffnessCallback(
+    const std_msgs::Float64MultiArray& msg) {
+  if (msg.data.size() != 7) {
+    ROS_ERROR("CartesianTwistImpedanceController: Invalid ROS message for desiredNullspaceStiffnessCallback provided");
+    throw std::invalid_argument("Aborting controller!");
+  }
+  nullspace_stiffness_target_.setIdentity();
+  nullspace_damping_target_.setIdentity();
+  for (int i = 0; i < 7; i ++) {
+    nullspace_stiffness_target_(i,i) = msg.data[i];
+  }
+  // Damping ratio = 1
+  for (int i = 0; i < 7; i ++) {
+    nullspace_damping_target_(i,i) = 2.0 * sqrt(msg.data[i]);
+  }
+  ROS_WARN_STREAM("[desiredNullspaceStiffnessCallback]: nullspace_stiffness_target_: " << std::endl <<  nullspace_stiffness_target_);
+  ROS_WARN_STREAM("[desiredNullspaceStiffnessCallback]: nullspace_damping_target_: " << std::endl <<  nullspace_damping_target_);
+}
+
+void CartesianTwistImpedanceController::desiredExternalToolCompensationCallback(
+    const std_msgs::Float64MultiArray& msg) {
+  if (msg.data.size() != 6) {
+    ROS_ERROR("CartesianTwistImpedanceController: Invalid ROS message for desiredExternalToolCompensationCallback provided");
+    throw std::invalid_argument("Aborting controller!");
+  }
+  tool_compensation_force_.setZero();
+  for (int i = 0; i < 6; i ++) {
+    tool_compensation_force_(i) = msg.data[i];
+  }
+  ROS_WARN_STREAM("[desiredExternalToolCompensationCallback]: tool_compensation_force_: " << std::endl <<  tool_compensation_force_);
+}
 
 void CartesianTwistImpedanceController::desiredTwistCallback(
     const geometry_msgs::TwistConstPtr& msg) {
 
-  
   franka::RobotState robot_state = state_handle_->getRobotState();
   Eigen::Affine3d transform(Eigen::Matrix4d::Map(robot_state.O_T_EE.data()));
   Eigen::Vector3d position(transform.translation());
@@ -409,8 +507,8 @@ void CartesianTwistImpedanceController::desiredTwistCallback(
   velocity_d_         << msg->linear.x, msg->linear.y, msg->linear.z;
   position_d_target_  << position + velocity_d_*dt_*100;
 
-  ROS_INFO_STREAM("[CALLBACK] Desired velocity from DS: " << velocity_d_);
-  ROS_INFO_STREAM("[CALLBACK] Desired ee position from DS: " << position_d_target_);
+  // ROS_INFO_STREAM("[CALLBACK] Desired velocity from DS: " << velocity_d_);
+  // ROS_INFO_STREAM("[CALLBACK] Desired ee position from DS: " << position_d_target_);
 
 
   // position_d_target_ << msg->pose.position.x, msg->pose.position.y, msg->pose.position.z;
