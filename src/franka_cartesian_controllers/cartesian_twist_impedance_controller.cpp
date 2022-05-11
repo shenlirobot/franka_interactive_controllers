@@ -353,8 +353,8 @@ void CartesianTwistImpedanceController::update(const ros::Time& /*time*/,
     // Cartesian PD control with damping ratio = 1
     tau_task << jacobian.transpose() *(-cartesian_stiffness_ * error - cartesian_damping_ * (jacobian * dq));
   
-    // ROS_INFO_STREAM("error: " << error);
-    // ROS_INFO_STREAM("Tau task: " << tau_task);
+    ROS_INFO_STREAM("error: " << error);
+    ROS_INFO_STREAM("Tau task: " << tau_task);
   }
   //////////////////////////////////////////////////////////////////////////////////////////////////
 
