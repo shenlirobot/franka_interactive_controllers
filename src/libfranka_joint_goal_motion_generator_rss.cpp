@@ -100,6 +100,15 @@ int main(int argc, char** argv) {
         std::cout << "Selected q_init_scoop (on the top right side of the table) as goal" << std::endl;
           q_goal = {{0.8450992030242781, 0.21778273696880843, 0.048599317568435996, -2.07138197806119, -0.035124700197536794, 2.36906767249673, 1.6893649699555515}};
           break;
+       case 10:
+        std::cout << "Selected tracing (on the top right side of the table) with scooping tool" << std::endl;
+          q_goal = {{0.5186169317814342, 0.47327140679336643, 0.5655727155502884, -1.8982900782468024, -1.4883901341760981, 1.2496956815573967, -0.029926588706774452}};
+          break;
+       case 11:
+        std::cout << "Selected tracing (on the top right side of the table) with scooping tool" << std::endl;
+          q_goal = {{0.6927077963203601, 0.489265818006338, 0.06339761333551898, -1.8396939527517642, -0.061229715592821206, 2.331856907707782, 1.5879182912551706}};
+          break;
+          
     }
 
     MotionGenerator motion_generator(0.6, q_goal);
