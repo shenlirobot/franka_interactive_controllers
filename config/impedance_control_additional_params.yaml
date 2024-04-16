@@ -2,7 +2,39 @@
 # external_tool_compensation: [0.46, -0.17, -1.64, 0, 0, 0] # no tool
 
 # Franka stand 220112 DSLTL
-external_tool_compensation: [0.66381655, 0.0753069032, -1.72973592, 0, 0, 0]
+# external_tool_compensation: [0.66381655, 0.0753069032, -1.72973592, 0, 0, 0]
+
+# 2024 kitchen experiments
+# Franka without any tools
+# external_tool_compensation: [0, 0, 0, 0, 0, 0]
+#   frame_id: "panda_K"
+# wrench: 
+#   force: 
+#     x: 0.18957351594754598
+#     y: -0.5242728566877183
+#     z: -2.3791221630623802
+#   torque: 
+#     x: -0.0878432913434795
+#     y: -0.4170727047887921
+#     z: 0.10085045279514618
+# Franka with TRI grippers and realsense
+# wrench: 
+#   force: 
+#     x: 1.3205618868408122
+#     y: -1.5343615133977724
+#     z: -5.471431943630233
+#   torque: 
+#     x: -0.25930899355313225
+#     y: -0.5592998823797354
+#     z: 0.3531043590668558
+external_tool_compensation: [1.131, -1.01, -3.092, -0.171, -0.142, 0.252]
+
+
+
+
+
+
+
 # F_ext^{with tool}
 # force = [-0.24196727403693258, 0.045701724787694686, -3.555890477166464]
 # torque = [-0.14540933419992513, -0.5687791825758969, 0.028329633410985003]

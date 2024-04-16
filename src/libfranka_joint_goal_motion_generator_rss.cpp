@@ -108,6 +108,14 @@ int main(int argc, char** argv) {
         std::cout << "Selected tracing (on the top right side of the table) with scooping tool" << std::endl;
           q_goal = {{0.6927077963203601, 0.489265818006338, 0.06339761333551898, -1.8396939527517642, -0.061229715592821206, 2.331856907707782, 1.5879182912551706}};
           break;
+       case 12:
+        std::cout << "home configuration for table-top manipulation" << std::endl;
+          q_goal = {{0.0001542171229130441, -0.7873074731652728, -0.006526418591684004, -2.357169394455308, -0.0005176712596116381, 1.5713411465220979, 0.7850599268091134}};
+          break;            
+       case 13:
+        std::cout << "home configuration for kitchen env" << std::endl;
+          q_goal = {{0.055895697589979525, -1.0322938193940276, -0.02501599122192101, -2.19468673666639, -0.02461131141031684, 2.206948733031337, 0.7522242767316076}};
+          break;          
           
     }
 
