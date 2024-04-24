@@ -27,4 +27,8 @@
   <!-- Bring up rviz configuration -->
   <node if="$(arg bringup_rviz)" pkg="rviz" type="rviz" output="screen" name="rviz" args="-d $(find franka_interactive_controllers)/launch/robot.rviz"/>
 
+  <!-- Trigger gripper state change from rostopic -->
+  <node pkg="franka_interactive_controllers" type="gripper_control_node.py" name="gripper_control_node" respawn="false" output="screen"/>
+
+
 </launch>
