@@ -62,15 +62,26 @@ int main(int argc, char** argv) {
 
     std::array<double, 7> q_goal = {{0, -M_PI_4, 0, -3 * M_PI_4, 0, M_PI_2, M_PI_4}};
     switch(goal_id) {
-       case 0:
+       case 0: // tracing experiment config
         std::cout << "home configuration for table-top manipulation" << std::endl;
           q_goal = {{0.0001542171229130441, -0.7873074731652728, -0.006526418591684004, -2.357169394455308, -0.0005176712596116381, 1.5713411465220979, 0.7850599268091134}};
           break;            
-       case 1:
+       case 1: // kitchen config such that gripper is visible in the scene camera, used for old data collection 
         std::cout << "home configuration for kitchen env" << std::endl;
           q_goal = {{0.03989923506243186, -0.8795352630680547, 0.02790805097202798, -2.131082794189453, -0.10203364571597015, 2.131498757091475, 0.9211458707067053}};
           break;          
-          
+       case 2: // kitchen config where arm is more sit back and clock is visible in wrist camera
+        std::cout << "second home configuration for kitchen env" << std::endl;
+          q_goal = {{0.03888077302278917, -1.448513279697351, 0.008016000580797072, -2.167268103191881, -0.05755834689736334, 1.8755393341781141, 0.8160920021941831}};
+          break;               
+       case 3: // kitchen config used for new data collection
+        std::cout << "third home configuration for kitchen env" << std::endl;
+          q_goal = {{0.04128145976907175, -1.0386612259202992, 0.001417798253621213, -1.8167583349076724, -0.058470077317928575, 1.740173071914249, 0.815775183826086}};
+          break;
+       case 4: // kitchen config where arm is high up looking down, hitting joint limits
+        std::cout << "fourth home configuration for kitchen env" << std::endl;
+          q_goal = {{-0.09227837615444125, -0.5005236509501817, -0.016475427751266442, -1.031010590660899, 0.04656340210636457, 1.3398803110168467, 0.719558948463621}};
+          break;
     }
 
     MotionGenerator motion_generator(0.6, q_goal);

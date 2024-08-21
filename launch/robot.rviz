@@ -53,7 +53,7 @@ Visualization Manager:
       Plane Cell Count: 10
       Reference Frame: <Fixed Frame>
       Value: true
-    - Alpha: 1
+    - Alpha: 0.1
       Class: rviz/RobotModel
       Collision Enabled: false
       Enabled: true
@@ -130,7 +130,7 @@ Visualization Manager:
       Value: true
       Visual Enabled: true
     - Class: rviz/TF
-      Enabled: true
+      Enabled: false
       Frame Timeout: 15
       Frames:
         All Enabled: false
@@ -167,9 +167,9 @@ Visualization Manager:
       Marker Alpha: 1
       Marker Scale: 0.3499999940395355
       Name: TF
-      Show Arrows: true
-      Show Axes: true
-      Show Names: true
+      Show Arrows: false
+      Show Axes: false
+      Show Names: false
       Tree:
         panda_link0:
           panda_link1:
@@ -257,11 +257,19 @@ Visualization Manager:
       Value: true
     - Class: rviz/Marker
       Enabled: true
+      Marker Topic: /franka_ee_curr_xyz
+      Name: Marker
+      Namespaces:
+        {}
+      Queue Size: 1
+      Value: true
+    - Class: rviz/MarkerArray
+      Enabled: true
       Marker Topic: /franka_trajectory_marker
       Name: Marker
       Namespaces:
         {}
-      Queue Size: 100
+      Queue Size: 1
       Value: true
     - Alpha: 1
       Class: rviz/PointStamped
@@ -334,7 +342,7 @@ Visualization Manager:
   Views:
     Current:
       Class: rviz/Orbit
-      Distance: 1.5725371837615967
+      Distance: 1.4343470335006714
       Enable Stereo Rendering:
         Stereo Eye Separation: 0.05999999865889549
         Stereo Focal Distance: 1
@@ -342,17 +350,17 @@ Visualization Manager:
         Value: false
       Field of View: 0.7853981852531433
       Focal Point:
-        X: -0.03361234813928604
-        Y: 0.23123417794704437
-        Z: 0.4085482358932495
+        X: 0.2696828246116638
+        Y: 0.005002488382160664
+        Z: 0.4182213246822357
       Focal Shape Fixed Size: true
       Focal Shape Size: 0.05000000074505806
       Invert Z Axis: false
       Name: Current View
       Near Clip Distance: 0.009999999776482582
-      Pitch: 0.16039790213108063
+      Pitch: 1.5697963237762451
       Target Frame: <Fixed Frame>
-      Yaw: 5.828582286834717
+      Yaw: 3.1385786533355713
     Saved: ~
 Window Geometry:
   Displays:

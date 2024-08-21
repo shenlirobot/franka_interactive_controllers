@@ -15,7 +15,7 @@ class FrankaStatesConverter:
         self.sub = rospy.Subscriber("/franka_state_controller/franka_states", FrankaState, self.convert_to_geometry_msg, queue_size=1, tcp_nodelay=True)
         self.pub_eeff        = rospy.Publisher("/franka_state_controller/O_T_EE", PoseStamped, queue_size=1)
         self.pub_ee_pose     = rospy.Publisher("/franka_state_controller/ee_pose", Pose, queue_size=1)
-        self.pub_eeff_flange = rospy.Publisher("/franka_state_controller/O_T_FL", PoseStamped, queue_size=1)
+        # self.pub_eeff_flange = rospy.Publisher("/franka_state_controller/O_T_FL", PoseStamped, queue_size=1)
 
     @staticmethod
     def q_from_R(R):
@@ -52,25 +52,25 @@ class FrankaStatesConverter:
         msg_ee_pose.orientation.z = quat_ee[2]
         msg_ee_pose.orientation.w = quat_ee[3]
 
-        # Flange of robot
-        F_T_EE_ = np.array(state_msg.F_T_EE).reshape(4, 4).T
-        F_T_EE = np.asmatrix(O_T_EE) * np.linalg.inv(np.asmatrix(F_T_EE_))
-        quat_fl = self.q_from_R(F_T_EE_[:3, :3])
+        # # Flange of robot
+        # F_T_EE_ = np.array(state_msg.F_T_EE).reshape(4, 4).T
+        # F_T_EE = np.asmatrix(O_T_EE) * np.linalg.inv(np.asmatrix(F_T_EE_))
+        # quat_fl = self.q_from_R(F_T_EE_[:3, :3])
 
-        msg_o_t_fl = PoseStamped()
-        msg_o_t_fl.header.stamp = state_msg.header.stamp
-        msg_o_t_fl.header.frame_id = "panda_link0"
-        msg_o_t_fl.pose.position.x = F_T_EE[0, 3]
-        msg_o_t_fl.pose.position.y = F_T_EE[1, 3]
-        msg_o_t_fl.pose.position.z = F_T_EE[2, 3]
-        msg_o_t_fl.pose.orientation.x = quat_ee[0]
-        msg_o_t_fl.pose.orientation.y = quat_ee[1]
-        msg_o_t_fl.pose.orientation.z = quat_ee[2]
-        msg_o_t_fl.pose.orientation.w = quat_ee[3]
+        # msg_o_t_fl = PoseStamped()
+        # msg_o_t_fl.header.stamp = state_msg.header.stamp
+        # msg_o_t_fl.header.frame_id = "panda_link0"
+        # msg_o_t_fl.pose.position.x = F_T_EE[0, 3]
+        # msg_o_t_fl.pose.position.y = F_T_EE[1, 3]
+        # msg_o_t_fl.pose.position.z = F_T_EE[2, 3]
+        # msg_o_t_fl.pose.orientation.x = quat_ee[0]
+        # msg_o_t_fl.pose.orientation.y = quat_ee[1]
+        # msg_o_t_fl.pose.orientation.z = quat_ee[2]
+        # msg_o_t_fl.pose.orientation.w = quat_ee[3]
 
-        self.pub_eeff.publish(msg_o_t_ee)
+        # self.pub_eeff.publish(msg_o_t_ee)
         self.pub_ee_pose.publish(msg_ee_pose)
-        self.pub_eeff_flange.publish(msg_o_t_fl)
+        # self.pub_eeff_flange.publish(msg_o_t_fl)
 
 
 if __name__ == '__main__':
