@@ -1,0 +1,34 @@
+<?xml version="1.0" ?>
+<launch>
+  <!-- <arg name="robot_ip" default="172.16.0.2"/> -->
+  <!-- <arg name="load_gripper" default="true" /> -->
+  <!-- <arg name="use_gripper_gui" default="true" /> -->
+  <arg name="bringup_rviz" default="true" />
+
+  <!-- Loads robot control interface -->
+  <!-- <include file="$(find franka_interactive_controllers)/launch/franka_control_interactive.launch" > -->
+    <!-- <arg name="robot_ip" value="$(arg robot_ip)" /> -->
+    <!-- <arg name="load_gripper" value="$(arg load_gripper)" /> -->
+  <!-- </include> -->
+
+  <!-- Convert franka state of EE to Geometry Message PoseStamped!! -->  
+  <!-- <node name="franka_to_geometry_messages" pkg="franka_interactive_controllers" type="franka_to_geometry_messages.py" respawn="false" output="screen"/> -->
+
+  <!-- Loads controller parameters -->  
+  <!-- <rosparam command="load" file="$(find franka_interactive_controllers)/config/impedance_control_additional_params.yaml"/>  -->
+  <!-- <rosparam command="load" file="$(find franka_interactive_controllers)/config/franka_interactive_controllers.yaml" /> -->
+
+  <!-- Bring up rqt_reconfigure to modify values -->
+  <!-- <node name="rqt_reconfigure" pkg="rqt_reconfigure" type="rqt_reconfigure" required="false" /> -->
+
+  <!-- Bring up rviz configuration -->
+  <node if="$(arg bringup_rviz)" pkg="rviz" type="rviz" output="screen" name="rviz_external_pc" args="-d $(find franka_interactive_controllers)/launch/robot_pointcloud.rviz"/>
+
+  <!-- Bring up gripper GUI to control gripper from code -->  
+  <!-- <node if="$(arg use_gripper_gui)" name="franka_gui_gripper_run" pkg="franka_interactive_controllers" type="franka_gui_gripper_run.py" respawn="false" output="screen"/> -->
+
+  <!-- Trigger gripper state change from rostopic -->
+  <!-- <node pkg="franka_interactive_controllers" type="gripper_control_node.py" name="gripper_control_node" respawn="false" output="screen"/> -->
+
+
+</launch>
