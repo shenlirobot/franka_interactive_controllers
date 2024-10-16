@@ -257,7 +257,7 @@ Visualization Manager:
       Value: true
     - Class: rviz/Marker
       Enabled: true
-      Marker Topic: /franka_ee_curr_xyz
+      Marker Topic: /curr_finray_tip #/franka_ee_curr_xyz
       Name: Marker
       Namespaces:
         {}
