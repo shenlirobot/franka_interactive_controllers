@@ -22,7 +22,7 @@
   <!-- <node name="rqt_reconfigure" pkg="rqt_reconfigure" type="rqt_reconfigure" required="false" /> -->
 
   <!-- Bring up rviz configuration -->
-  <node if="$(arg bringup_rviz)" pkg="rviz" type="rviz" output="screen" name="rviz_external_pc" args="-d $(find franka_interactive_controllers)/launch/robot_pointcloud.rviz"/>
+  <node if="$(arg bringup_rviz)" pkg="rviz" type="rviz" output="screen" name="rviz_external_pc" args="-d $(find franka_interactive_controllers)/launch/paper_figure.rviz"/>
 
   <!-- Bring up gripper GUI to control gripper from code -->  
   <!-- <node if="$(arg use_gripper_gui)" name="franka_gui_gripper_run" pkg="franka_interactive_controllers" type="franka_gui_gripper_run.py" respawn="false" output="screen"/> -->
