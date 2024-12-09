@@ -1,0 +1,15 @@
+# external_tool_compensation: [1.131, -1.01, -2.5, -0.171, -0.142, 0.252] # kitchen finray icra
+# external_tool_compensation: [-2.423, -0.514, -5.724, 0.345, -0.579, 0.437]
+external_tool_compensation: [0.440, -0.431, -4.146, -0.332, -0.533, 0.188]
+
+
+# RSS: replay:
+# cartesian_stiffness_target: [300, 300, 300, 50, 50, 50]
+# cartesian_stiffness_target: [300, 300, 500, 50, 70, 50]
+cartesian_stiffness_target: [0, 0, 0, 0, 0, 0]
+
+# RSS: teach:
+# nullspace_stiffness_target: [10, 5, 0.1, 0.1, 0.1, 0.000001, 0.1]
+# RSS: execute
+nullspace_stiffness_target: [0.1, 0.1, 10, 0.01, 0.01, 0.01, 0.01]
+# nullspace_stiffness_target: [0.00001, 1, 50, 0.05, 5, 0.05, 1]
