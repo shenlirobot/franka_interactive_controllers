@@ -62,11 +62,15 @@ int main(int argc, char** argv) {
 
     std::array<double, 7> q_goal = {{0, -M_PI_4, 0, -3 * M_PI_4, 0, M_PI_2, M_PI_4}};
     switch(goal_id) {
-       case 0: // tracing experiment config
+       case 0: // vla home pos, safe transfer from kitchen setup
         std::cout << "home configuration for table-top manipulation" << std::endl;
           q_goal = {{-1.508770230681417, 0.06846989953502584, -0.08864672428352204, -1.521577253575337, 0.018442391796244514, 1.6746276321940705, 0.8779607038001506}};
           break;            
-    }
+        case 1: // vla home config so ee in camera view
+          std::cout << "home configuration for vla manipulation" << std::endl;
+            q_goal = {{-1.3696562287714151, 0.5159001712345958, -0.22053116578790366, -1.5590072227442662, 0.07207712371150653, 2.0929639699678195, 0.7502957039702344}};
+            break;   
+      }
 
     MotionGenerator motion_generator(0.6, q_goal);
     std::cout << "WARNING: This example will move the robot! "
