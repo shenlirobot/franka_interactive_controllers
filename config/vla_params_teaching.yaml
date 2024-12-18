@@ -11,5 +11,5 @@ cartesian_stiffness_target: [0, 0, 0, 0, 0, 0]
 # RSS: teach:
 # nullspace_stiffness_target: [10, 5, 0.1, 0.1, 0.1, 0.000001, 0.1]
 # RSS: execute
-nullspace_stiffness_target: [0.1, 0.1, 10, 0.01, 0.01, 0.01, 0.01]
+nullspace_stiffness_target: [0.01, 0.1, 1, 0.01, 0.01, 0.01, 0.01]
 # nullspace_stiffness_target: [0.00001, 1, 50, 0.05, 5, 0.05, 1]
